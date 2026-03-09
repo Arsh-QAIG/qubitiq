@@ -1,64 +1,130 @@
-import Image from "next/image";
+'use client';
+
+import { useState } from 'react';
+import Sidebar from '@/components/Sidebar';
+import Searchbox from '@/components/Searchbox';
+import { Sparkles, Database, Code2, Lightbulb, Globe, Clock } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+const suggestions = [
+  { icon: Database,  label: 'Analyze Data',   sub: 'Process complex datasets', color: '#6366f1', bg: '#eef2ff' },
+  { icon: Code2,     label: 'Code Assistant', sub: 'Debug and optimize code',  color: '#8b5cf6', bg: '#f5f3ff' },
+  { icon: Lightbulb, label: 'Creative Ideas', sub: 'Brainstorm solutions',      color: '#f59e0b', bg: '#fffbeb' },
+  { icon: Globe,     label: 'Quick Search',   sub: 'Find information fast',    color: '#0ea5e9', bg: '#f0f9ff' },
+];
 
 export default function Home() {
+  const [collapsed,  setCollapsed]  = useState(false);
+  const [messages,   setMessages]   = useState([]);
+  const hasMessages = messages.length > 0;
+
+  const handleSend = (text) => {
+    setMessages(m => [...m, { role: 'user', content: text }]);
+    // AI response will go here later
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.js file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="flex h-screen overflow-hidden bg-gray-50">
+      <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(c => !c)} />
+
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+        {/* Top bar */}
+        <div
+          className="flex items-center justify-end px-6 shrink-0 border-b border-gray-100 bg-white"
+          style={{ minHeight: 52 }}
+        >
+          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-gray-500 border border-gray-200 hover:bg-gray-50 transition-colors">
+            <Clock size={14} />
+            Recent threads
+          </button>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto flex flex-col">
+
+          {/* ── Hero (no messages) ── */}
+          {!hasMessages && (
+            <div className="flex-1 flex flex-col items-center justify-center px-6 gap-8">
+
+              {/* Logo */}
+              <div className="flex flex-col items-center gap-4">
+                <div
+                  className="w-16 h-16 rounded-2xl flex items-center justify-center"
+                  style={{
+                    background: 'linear-gradient(135deg,#eef2ff,#e0e7ff)',
+                    boxShadow: '0 4px 24px rgba(99,102,241,0.15)',
+                  }}
+                >
+                  <Sparkles size={28} strokeWidth={1.8} style={{ color: '#6366f1' }} />
+                </div>
+                <div className="text-center">
+                  <h1 className="text-5xl font-bold tracking-tight text-gray-900">
+                    Qubit IQ
+                  </h1>
+                  <p className="text-base text-gray-400 mt-2">Ask anything. Get answers.</p>
+                </div>
+              </div>
+
+              {/* Search */}
+              <Searchbox onSend={handleSend} />
+
+              {/* Suggestion cards */}
+              <div className="w-full max-w-2xl grid grid-cols-2 gap-3">
+                {suggestions.map(({ icon: Icon, label, sub, color, bg }) => (
+                  <button
+                    key={label}
+                    onClick={() => handleSend(label)}
+                    className="flex items-center gap-3 p-4 rounded-xl border border-gray-100 bg-white text-left hover:border-gray-200 hover:shadow-sm transition-all duration-150"
+                  >
+                    <div
+                      className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+                      style={{ background: bg }}
+                    >
+                      <Icon size={18} strokeWidth={1.8} style={{ color }} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-800">{label}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">{sub}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ── Chat thread (has messages) ── */}
+          {hasMessages && (
+            <div className="flex-1 flex flex-col gap-5 px-6 py-8 max-w-3xl w-full mx-auto">
+              {messages.map((msg, i) => (
+                <div
+                  key={i}
+                  className={cn('flex gap-3', msg.role === 'user' ? 'justify-end' : 'justify-start')}
+                >
+                  <div
+                    className={cn(
+                      'max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap',
+                      msg.role === 'user'
+                        ? 'bg-indigo-600 text-white rounded-tr-sm'
+                        : 'bg-white border border-gray-100 text-gray-800 rounded-tl-sm shadow-sm'
+                    )}
+                  >
+                    {msg.content}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
+
+        {/* Sticky searchbox once chat starts */}
+        {hasMessages && (
+          <div className="shrink-0 px-6 pb-5 pt-3 bg-gray-50 border-t border-gray-100">
+            <div className="max-w-2xl mx-auto">
+              <Searchbox onSend={handleSend} />
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
