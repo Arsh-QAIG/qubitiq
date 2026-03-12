@@ -7,24 +7,90 @@ import { Sparkles, Database, Code2, Lightbulb, Globe, Clock } from 'lucide-react
 import { cn } from '@/lib/utils';
 
 const suggestions = [
-  { icon: Database,  label: 'Analyze Data',   sub: 'Process complex datasets', color: '#6366f1', bg: '#eef2ff' },
-  { icon: Code2,     label: 'Code Assistant', sub: 'Debug and optimize code',  color: '#8b5cf6', bg: '#f5f3ff' },
-  { icon: Lightbulb, label: 'Creative Ideas', sub: 'Brainstorm solutions',      color: '#f59e0b', bg: '#fffbeb' },
-  { icon: Globe,     label: 'Quick Search',   sub: 'Find information fast',    color: '#0ea5e9', bg: '#f0f9ff' },
+  { icon: Database, label: 'Analyze Data', sub: 'Process complex datasets', color: 'var(--primary)', bg: 'var(--primary-light)' },
+  { icon: Code2, label: 'Code Assistant', sub: 'Debug and optimize code', color: 'var(--secondary)', bg: 'var(--secondary-light)' },
+  { icon: Lightbulb, label: 'Creative Ideas', sub: 'Brainstorm solutions', color: 'var(--tertiary)', bg: 'var(--tertiary-light)' },
+  { icon: Globe, label: 'Quick Search', sub: 'Find information fast', color: 'var(--quaternary)', bg: 'var(--quaternary-light)' },
 ];
 
+
 export default function Home() {
-  const [collapsed,  setCollapsed]  = useState(false);
-  const [messages,   setMessages]   = useState([]);
+  const [collapsed, setCollapsed] = useState(false);
+  const [messages, setMessages] = useState([]);
   const hasMessages = messages.length > 0;
 
-  const handleSend = (text) => {
-    setMessages(m => [...m, { role: 'user', content: text }]);
-    // AI response will go here later
+
+  const handleSend = async (text) => {
+    //Add user message to cha
+    const next = [...messages, { role: 'user', content: text }];
+    setMessages(next);
+
+    // Add empty assistant message 
+    setMessages(m => [...m, { role: 'assistant', content: '' }]);
+
+    // Call your /api/chat route
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: next }),
+    });
+
+    // Read the stream chunk by chunk
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value);
+      const parts = buffer.split('\n\n');
+      buffer = parts.pop() || '';
+
+      for (const part of parts) {
+        const line = part.trim();
+        if (!line.startsWith('data: ')) continue;
+        const raw = line.slice(6);
+        if (raw === '[DONE]') break;
+
+        try {
+          const { delta } = JSON.parse(raw);
+          if (delta) {
+            setMessages(m => {
+              const copy = [...m];
+              const last = copy[copy.length - 1];
+              copy[copy.length - 1] = { ...last, content: last.content + delta };
+              return copy;
+            });
+          }
+        } catch (e) {
+          // Skip invalid JSON
+        }
+      }
+    }
+
+    // Flush any remaining buffer
+    if (buffer.startsWith('data: ')) {
+      const raw = buffer.slice(6);
+      if (raw !== '[DONE]') {
+        try {
+          const { delta } = JSON.parse(raw);
+          if (delta) {
+            setMessages(m => {
+              const copy = [...m];
+              const last = copy[copy.length - 1];
+              copy[copy.length - 1] = { ...last, content: last.content + delta };
+              return copy;
+            });
+          }
+        } catch (e) { }
+      }
+    }
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div className="flex h-screen overflow-hidden bg-[var(--background)]">
       <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(c => !c)} />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">

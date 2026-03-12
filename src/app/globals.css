@@ -3,6 +3,23 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  
+  /* Semantic Colors */
+  --primary: #6366f1;
+  --primary-light: #eef2ff;
+  --secondary: #8b5cf6;
+  --secondary-light: #f5f3ff;
+  --tertiary: #f59e0b;
+  --tertiary-light: #fffbeb;
+  --quaternary: #0ea5e9;
+  --quaternary-light: #f0f9ff;
+  
+  --text: #111827;
+  --text-muted: #6b7280;
+  --text-light: #9ca3af;
+  --border: #e5e7eb;
+  --surface: #ffffff;
+  --surface-hover: #f9fafb;
 }
 
 @theme inline {
@@ -12,12 +29,12 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
+/* @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
   }
-}
+} */
 
 body {
   background: var(--background);
